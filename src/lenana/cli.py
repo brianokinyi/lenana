@@ -297,7 +297,7 @@ def reprocess(
 
 @app.command()
 def score() -> None:
-    """Score calls whose timeframe has elapsed (daily timer)."""
+    """Score calls whose timeframe has elapsed."""
     from .db import session_scope
     from .pipeline.score import score as score_stage
 
@@ -313,7 +313,7 @@ def scorecard(
         bool, typer.Option("--send/--print", help="Queue to Telegram or print.")
     ] = False,
 ) -> None:
-    """Weekly channel and speaker league table (Sunday timer)."""
+    """Channel and speaker league table (also queued weekly by the pipeline)."""
     from .db import session_scope
     from .enums import OutboxKind
     from .models import utcnow
@@ -329,7 +329,7 @@ def scorecard(
             return
         enqueue_committed(
             session,
-            dedupe_key=f"scorecard:{utcnow():%Y-W%W}",
+            dedupe_key="scorecard:" + utcnow().astimezone(cfg.settings.tz).strftime("%G-W%V"),
             kind=OutboxKind.SCORECARD,
             body=body,
             cfg=cfg,

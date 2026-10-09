@@ -25,6 +25,7 @@ from .crosscheck import crosscheck
 from .discover import discover
 from .enrich import enrich
 from .extract import extract
+from .maintenance import daily_backup, daily_health, weekly_scorecard
 from .mentions import mentions
 from .report import daily_report, tracker_prices
 from .runner import StageResult, record_stage
@@ -49,6 +50,9 @@ STAGES: dict[str, StageCallable] = {
     "score": score,
     "tracker_prices": tracker_prices,
     "daily_report": daily_report,
+    "daily_backup": daily_backup,
+    "daily_health": daily_health,
+    "weekly_scorecard": weekly_scorecard,
     "finalise": finalise_queued,
 }
 

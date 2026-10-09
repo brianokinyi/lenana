@@ -21,10 +21,21 @@ if [[ ! -f "$APP_DIR/pyproject.toml" ]]; then
     exit 1
 fi
 
+echo "==> Stopping Lenana during installation"
+for unit in lenana-pipeline.timer lenana-pipeline.service lenana-dashboard.service \
+    lenana-outbox.timer lenana-outbox.service lenana-daily.timer lenana-daily.service \
+    lenana-weekly.timer lenana-weekly.service; do
+    if systemctl is-active --quiet "$unit"; then
+        systemctl stop "$unit"
+    fi
+done
+
 echo "==> Creating the service user"
-# A dedicated system user with no shell and no home: the units run unprivileged.
+# A dedicated system user; its writable application home stays under data/.
 if ! id -u "$APP_USER" >/dev/null 2>&1; then
-    useradd --system --no-create-home --shell /usr/sbin/nologin "$APP_USER"
+    useradd --system --no-create-home --home-dir "$APP_DIR/data" --shell /usr/sbin/nologin "$APP_USER"
+else
+    usermod --home "$APP_DIR/data" "$APP_USER"
 fi
 
 echo "==> Installing uv"
@@ -54,11 +65,21 @@ echo "==> Applying database migrations"
 sudo -u "$APP_USER" "$APP_DIR/.venv/bin/lenana" db upgrade
 
 echo "==> Installing systemd units"
+# Retire the separate scheduled jobs when upgrading an existing installation.
+for job in outbox daily weekly; do
+    for kind in timer service; do
+        unit="lenana-$job.$kind"
+        if [[ -f "/etc/systemd/system/$unit" ]]; then
+            systemctl disable --now "$unit"
+            rm -f "/etc/systemd/system/$unit"
+        fi
+    done
+done
 install -m 644 "$APP_DIR"/deploy/lenana-*.service "$APP_DIR"/deploy/lenana-*.timer /etc/systemd/system/
 systemctl daemon-reload
 
-echo "==> Enabling timers"
-systemctl enable --now lenana-pipeline.timer lenana-outbox.timer lenana-daily.timer lenana-weekly.timer
+echo "==> Enabling pipeline timer and dashboard"
+systemctl enable --now lenana-pipeline.timer lenana-dashboard.service
 
 cat <<'NEXT'
 

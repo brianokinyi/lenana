@@ -1,0 +1,26 @@
+[Unit]
+Description=Lenana coin tracker dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lenana
+Group=lenana
+WorkingDirectory=/opt/lenana
+Environment=PATH=/opt/lenana/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/lenana/.venv/bin/lenana dashboard
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/lenana/data
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lenana-dashboard
+
+[Install]
+WantedBy=multi-user.target

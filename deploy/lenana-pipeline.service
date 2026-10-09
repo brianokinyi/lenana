@@ -1,5 +1,5 @@
 [Unit]
-Description=lenana pipeline (discover -> transcribe -> extract -> verify -> alert)
+Description=Lenana pipeline, Telegram delivery and scheduled maintenance
 Documentation=https://github.com/your-user/lenana
 After=network-online.target
 Wants=network-online.target

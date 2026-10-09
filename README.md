@@ -11,8 +11,8 @@ credentials, and exposes no network listener.
 
 ## How it works
 
-Four channels are polled every 30 minutes. New videos move through a state machine, one
-stage at a time, each stage a short-lived process run by a systemd timer:
+Four channels are polled every 30 minutes. One pipeline process runs all stages in
+order, driven by one systemd timer. New videos move through a state machine:
 
 ```
 discovered → transcribed → extracted → verified → enriched → crosschecked → alert_queued → done
@@ -47,8 +47,8 @@ can be re-run against full history and compared (`lenana reprocess`).
 
 ## VPS setup from zero
 
-Tested on Ubuntu 24.04. Everything runs as a dedicated unprivileged user under hardened
-systemd units; there is no daemon, no web server, and no Redis.
+Tested on Ubuntu 24.04. The deployment has one pipeline service and timer plus a
+dashboard service bound to localhost. All run as the unprivileged `lenana` user.
 
 ```bash
 # 1. As root, fetch the code
@@ -56,12 +56,12 @@ sudo apt update && sudo apt install -y git curl
 sudo git clone <your-repo-url> /opt/lenana
 cd /opt/lenana
 
-# 2. Run the installer: creates the `lenana` user, builds the venv from the
-#    lockfile, applies migrations, installs and enables the timers
-sudo ./deploy/install.sh
+# 2. Configure secrets before installation
+sudo cp .env.example .env
+sudo nano .env
 
-# 3. Fill in your keys
-sudo -u lenana nano /opt/lenana/.env
+# 3. Build the venv, apply migrations, enable the pipeline timer and dashboard
+sudo env UV_PYTHON_INSTALL_DIR=/opt/lenana-python bash deploy/install.sh
 ```
 
 Then validate, in this order — each step proves one dependency before the next relies
@@ -84,7 +84,28 @@ Watch it:
 systemctl list-timers 'lenana-*'
 journalctl -u lenana-pipeline -f           # structured JSON, one object per line
 journalctl -u lenana-pipeline -o cat | jq 'select(.level=="ERROR")'
+journalctl -u lenana-dashboard -f
 ```
+
+Each pipeline run retries pending Telegram deliveries. Backup retention and health
+checks run once per Adelaide calendar day; scorecards are queued once per Adelaide
+calendar week (Monday–Sunday), on the first pipeline run in that period. Completed
+work is recorded in SQLite, so process restarts do not rerun it. Failed maintenance
+tasks retry on the next pipeline run; detected health problems queue a warning.
+Daily tracker reports remain deduplicated by local day. After downtime, the next
+run performs the current day/week's tasks rather than sending missed reports.
+
+To upgrade an existing installation, pull the latest code and rerun the installer.
+It stops and removes the retired outbox, daily and weekly services and timers, then
+enables only `lenana-pipeline.timer` and `lenana-dashboard.service`.
+
+For private dashboard access, keep this tunnel open on your computer:
+
+```bash
+ssh -N -L 8502:127.0.0.1:8501 root@SERVER_IP
+```
+
+Open `http://localhost:8502`. A domain is not required.
 
 ### Getting each API key
 
@@ -275,8 +296,8 @@ current prices mean a mapping or quote is unavailable; quote timestamps show age
 .venv/bin/lenana report --send --force   # explicitly send an additional report today
 ```
 
-Reports use the existing Telegram outbox for retries and deduplication. The daily
-systemd maintenance unit also sends a report after scoring. On a local Mac, running
+Reports use the existing Telegram outbox for retries and deduplication. The pipeline
+queues one report per local day after scoring. On a local Mac, running
 the dashboard does not schedule pipeline work: run `lenana run` to fetch/process new
 videos. Keep `data/reports/` files while document deliveries are pending.
 
