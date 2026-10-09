@@ -1,0 +1,105 @@
+# yt-crypto-signals — non-secret configuration.
+# Secrets live in .env (see .env.example). Everything here is safe to commit.
+
+# Adding a channel = one line. `default_host` labels calls the extractor
+# attributes to "Host" so the speaker scorecard is meaningful; guests still
+# appear as "Guest" unless they are named in the transcript.
+channels:
+  - handle: "@CryptoBanterGroup"
+    default_host: "Ran Neuner"
+  - handle: "@notthreadguy"
+    default_host: "ThreadGuy"
+  - handle: "@TheLarkDavisShow"
+    default_host: "Lark Davis"
+  - handle: "@Investwithdoc"
+    default_host: "Doc"
+
+discovery:
+  backfill_days: 30
+  min_duration_seconds: 180          # skip Shorts
+  livestream_settle_hours: 2         # wait after actualEndTime for captions
+  max_videos_per_run: 25
+
+transcripts:
+  languages: ["en", "en-US", "en-GB"]
+  provider_order: ["youtube_transcript_api", "yt_dlp"]
+  # Webshare runs its own retry loop; keep it low so it does not multiply
+  # with our tenacity budget (see reliability.transcript_retry_ladder).
+  webshare_retries_when_blocked: 2
+  webshare_ip_locations: []          # e.g. ["us", "de"] to cut latency
+  ytdlp_subtitle_format: "json3"
+  ytdlp_po_token_provider_url: "http://127.0.0.1:4416"
+  # YouTube supplies this text at runtime; yt-dlp does not hardcode it, so
+  # classification is substring matching. Add patterns here, not in code.
+  blocked_message_patterns:
+    - "sign in to confirm"
+    - "not a bot"
+    - "confirm you're not a bot"
+    - "http error 429"
+    - "too many requests"
+    - "blocked it in your country"
+  unavailable_message_patterns:
+    - "video unavailable"
+    - "private video"
+    - "video has been removed"
+    - "members-only"
+  no_captions_message_patterns:
+    - "no subtitles"
+    - "there are no subtitles"
+
+extraction:
+  prompt_version: "v1"
+  chunk_minutes: 20
+  chunk_overlap_seconds: 60
+  max_output_tokens: 8000
+  # Cost accounting only — never used for control flow.
+  # claude-haiku-4-5: $1.00 / $5.00 per million tokens.
+  model_prices_usd_per_mtok:
+    claude-haiku-4-5:
+      input: 1.00
+      output: 5.00
+    claude-sonnet-5:
+      input: 3.00
+      output: 15.00
+
+verification:
+  fuzzy_threshold: 85
+  quote_window_seconds: 90
+  min_quote_chars: 12
+
+enrichment:
+  coin_list_size: 1000
+  coin_list_refresh_hours: 24
+  # Entry price is taken at publish_at + the call's timestamp, not at publish.
+  entry_price_at_call_timestamp: true
+
+crosscheck:
+  window_days: 5
+  recompute_nightly: true
+
+scoring:
+  default_timeframe_days: 30
+  hit_threshold_pct: 5.0
+  ohlc_days_buckets: [1, 7, 14, 30, 90, 180, 365]
+
+scorecard:
+  min_scored_for_rank: 10
+
+alerts:
+  max_message_chars: 4096
+  send_rate_per_second: 1
+  outbox_retry_ladder_minutes: [1, 5, 15, 60, 240]
+  outbox_max_attempts: 6
+
+reliability:
+  # transcript_failed backoff; after the last rung -> permanent_failed + health alert.
+  transcript_retry_ladder_minutes: [15, 60, 240, 720, 1440]
+  http_timeout_seconds: 30
+  http_max_attempts: 4
+  stage_batch_size: 10
+
+health:
+  transcript_failure_alert_hours: 6
+  youtube_quota_daily_units: 10000
+  youtube_quota_warn_pct: 80
+  backup_retention_days: 14

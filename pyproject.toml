@@ -1,0 +1,69 @@
+[project]
+name = "yt-crypto-signals"
+version = "0.1.0"
+description = "Tracks explicit crypto price predictions made on YouTube channels, verifies them, and scores them against real prices."
+requires-python = "==3.12.*"
+dependencies = [
+    "anthropic==1.12.1",
+    "youtube-transcript-api==1.2.4",
+    "yt-dlp==2026.8.19",
+    "google-api-python-client==2.201.0",
+    "sqlmodel==0.0.48",
+    "alembic==1.20.0",
+    "pydantic==2.14.0",
+    "pydantic-settings==2.15.0",
+    "typer==0.27.3",
+    "httpx==0.28.1",
+    "tenacity==9.2.1",
+    "rapidfuzz==3.14.6",
+    "pyyaml==6.0.3",
+    "defusedxml==0.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "respx==0.23.1",
+    "time-machine==3.5.1",
+    "ruff==0.16.10",
+    "mypy==2.4.0",
+    "types-PyYAML==6.0.12.20260906",
+]
+
+[project.scripts]
+ycs = "yt_crypto_signals.cli:entrypoint"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yt_crypto_signals"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["B008"]  # typer uses function calls in argument defaults
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["yt_crypto_signals"]
+mypy_path = "src"
+strict = true
+warn_return_any = true
+# SQLModel's decorated metaclass defeats strict attribute inference.
+plugins = []
+
+[[tool.mypy.overrides]]
+module = ["yt_dlp.*", "googleapiclient.*", "youtube_transcript_api.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+filterwarnings = ["error::DeprecationWarning:yt_crypto_signals.*"]
