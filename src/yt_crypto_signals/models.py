@@ -16,9 +16,11 @@ Conventions that hold across every table:
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from sqlalchemy import JSON, Column, Index, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
 from .enums import (
@@ -34,6 +36,23 @@ from .enums import (
     VerifyStatus,
     VideoState,
 )
+
+
+def enum_type(enum_cls: type[StrEnum]) -> SAEnum:
+    """Column type that stores an enum's **value**, not its member name.
+
+    SQLAlchemy's default is to persist `Enum.name`, which would write
+    `"VERIFIED"` where every other part of this system — config patterns, log
+    fields, raw SQL in a debugging session — says `"verified"`. `native_enum`
+    is off because SQLite has no ENUM type and a VARCHAR + CHECK constraint is
+    what it would emit anyway.
+    """
+    return SAEnum(
+        enum_cls,
+        values_callable=lambda e: [member.value for member in e],
+        native_enum=False,
+        length=32,
+    )
 
 
 def utcnow() -> datetime:
@@ -80,7 +99,9 @@ class Video(SQLModel, table=True):
     is_livestream: bool = False
     actual_end_time: datetime | None = None
 
-    state: VideoState = Field(default=VideoState.DISCOVERED, index=True)
+    state: VideoState = Field(
+        default=VideoState.DISCOVERED, sa_type=enum_type(VideoState), index=True
+    )
     skip_reason: str | None = None
 
     attempts: int = 0
@@ -108,7 +129,7 @@ class Transcript(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     video_pk: int = Field(foreign_key="video.id", index=True, unique=True)
-    provider: TranscriptProvider
+    provider: TranscriptProvider = Field(sa_type=enum_type(TranscriptProvider))
     language: str | None = None
     is_generated: bool = True
     #: [{"start": float, "duration": float, "text": str}, ...] in source order.
@@ -145,7 +166,7 @@ class ExtractionRun(SQLModel, table=True):
     #: None when the model has no price configured; token counts remain valid.
     cost_usd: float | None = None
 
-    market_sentiment: Sentiment | None = None
+    market_sentiment: Sentiment | None = Field(default=None, sa_type=enum_type(Sentiment))
     summary: str | None = None
 
     is_active: bool = Field(default=True, description="False once superseded by a newer run")
@@ -169,12 +190,12 @@ class Call(SQLModel, table=True):
     # --- as extracted ---
     token_symbol: str = Field(index=True)
     token_name: str | None = None
-    direction: Direction
+    direction: Direction = Field(sa_type=enum_type(Direction))
     price_target: float | None = None
     target_currency: str | None = None
     timeframe_text: str | None = None
     timeframe_days: float | None = None
-    confidence: Confidence = Confidence.MEDIUM
+    confidence: Confidence = Field(default=Confidence.MEDIUM, sa_type=enum_type(Confidence))
     speaker: str = "Host"
     quote: str = ""
     timestamp_seconds: int = 0
@@ -182,14 +203,18 @@ class Call(SQLModel, table=True):
     is_conditional: bool = False
 
     # --- verification (deterministic guard, no LLM) ---
-    verify_status: VerifyStatus = Field(default=VerifyStatus.PENDING, index=True)
+    verify_status: VerifyStatus = Field(
+        default=VerifyStatus.PENDING, sa_type=enum_type(VerifyStatus), index=True
+    )
     verify_score: float | None = Field(default=None, description="rapidfuzz 0-100")
     verify_reason: str | None = None
     verified_at: datetime | None = None
 
     # --- enrichment ---
     coingecko_id: str | None = Field(default=None, index=True)
-    mapping_status: MappingStatus = MappingStatus.PENDING
+    mapping_status: MappingStatus = Field(
+        default=MappingStatus.PENDING, sa_type=enum_type(MappingStatus)
+    )
     mapping_note: str | None = None
     entry_price_usd: float | None = None
     #: publish time + timestamp_seconds, i.e. when the call was actually spoken.
@@ -214,7 +239,7 @@ class CallScore(SQLModel, table=True):
 
     price_at_eval: float | None = None
     pct_change: float | None = None
-    outcome: Outcome | None = None
+    outcome: Outcome | None = Field(default=None, sa_type=enum_type(Outcome))
 
     #: From 4h OHLC candles over [entry_price_at, due_at] — real wicks, so a
     #: target touched intraday is detected even if price closed away from it.
@@ -243,7 +268,9 @@ class Crosscheck(SQLModel, table=True):
     bull_count: int = 0
     bear_count: int = 0
     channel_count: int = 0
-    divergence: Divergence = Divergence.ALIGNED
+    divergence: Divergence = Field(
+        default=Divergence.ALIGNED, sa_type=enum_type(Divergence)
+    )
     #: [{"channel": str, "direction": str, "video_id": str}, ...]
     channels: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSON))
     window_days: int = 5
@@ -270,14 +297,16 @@ class Outbox(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     dedupe_key: str = Field(unique=True, index=True)
-    kind: OutboxKind
+    kind: OutboxKind = Field(sa_type=enum_type(OutboxKind))
     chat_id: str
     body: str
     #: Messages over the 4096-char limit are split into several rows.
     part_index: int = 0
     part_total: int = 1
 
-    state: OutboxState = Field(default=OutboxState.PENDING, index=True)
+    state: OutboxState = Field(
+        default=OutboxState.PENDING, sa_type=enum_type(OutboxState), index=True
+    )
     attempts: int = 0
     last_error: str | None = None
     next_attempt_at: datetime = Field(default_factory=utcnow, index=True)
@@ -382,5 +411,6 @@ __all__ = [
     "StageRun",
     "Transcript",
     "Video",
+    "enum_type",
     "utcnow",
 ]

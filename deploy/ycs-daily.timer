@@ -1,0 +1,13 @@
+[Unit]
+Description=yt-crypto-signals daily maintenance
+
+[Timer]
+# 03:00 UTC: outside US and European market hours, and after CoinGecko's
+# daily candles have settled.
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+Unit=ycs-daily.service
+
+[Install]
+WantedBy=timers.target

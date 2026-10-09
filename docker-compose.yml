@@ -1,0 +1,34 @@
+# ONLY the bgutil PO-token provider sidecar.
+#
+# The application itself does not run in Docker — it runs as systemd oneshot
+# units on the host (see deploy/). This file exists solely because the
+# PO-token provider is a Node service, and running it in a container avoids
+# installing a Node toolchain on the VPS.
+#
+# Needed only if `ycs test-proxy` reports transcripts as `blocked` even with a
+# residential proxy configured. Start with:
+#
+#     docker compose up -d
+#     pip install bgutil-ytdlp-pot-provider    # the yt-dlp plugin half
+#     ycs test-proxy                           # should now report "detected"
+
+services:
+  bgutil-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider:latest
+    container_name: bgutil-provider
+    restart: unless-stopped
+    # Bound to localhost only: this must never be reachable from the internet.
+    ports:
+      - "127.0.0.1:4416:4416"
+    init: true
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:4416/ping"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

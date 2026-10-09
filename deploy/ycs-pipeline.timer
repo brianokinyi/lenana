@@ -1,0 +1,15 @@
+[Unit]
+Description=Run the yt-crypto-signals pipeline every 30 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+# Catch up after downtime rather than silently skipping a window.
+Persistent=true
+# Spread load off the exact half-hour so four channels are not polled by
+# everyone else's cron at the same instant.
+RandomizedDelaySec=120
+Unit=ycs-pipeline.service
+
+[Install]
+WantedBy=timers.target

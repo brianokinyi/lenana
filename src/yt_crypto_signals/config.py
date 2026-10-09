@@ -19,6 +19,35 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "config.yaml"
 
+# Failure-classification patterns. These live in code as a safety net: with
+# empty lists every block would be classified "transient" and retried forever,
+# so a config.yaml that omits these keys must still behave correctly.
+# config.yaml remains the place to edit them when YouTube changes its wording.
+DEFAULT_BLOCKED_PATTERNS = [
+    "sign in to confirm",
+    "not a bot",
+    "http error 429",
+    "too many requests",
+    "blocked it in your country",
+    "available in your country",
+    "ip has been blocked",
+]
+DEFAULT_UNAVAILABLE_PATTERNS = [
+    "video unavailable",
+    "private video",
+    "video has been removed",
+    "members-only",
+    "members only",
+    "age-restricted",
+    "age restricted",
+]
+DEFAULT_NO_CAPTIONS_PATTERNS = [
+    "no subtitles",
+    "there are no subtitles",
+    "subtitles are disabled",
+    "no closed captions",
+]
+
 PositiveInt = Annotated[int, Field(gt=0)]
 NonNegInt = Annotated[int, Field(ge=0)]
 
@@ -149,9 +178,15 @@ class TranscriptsConfig(BaseModel):
     webshare_ip_locations: list[str] = []
     ytdlp_subtitle_format: str = "json3"
     ytdlp_po_token_provider_url: str = "http://127.0.0.1:4416"
-    blocked_message_patterns: list[str] = []
-    unavailable_message_patterns: list[str] = []
-    no_captions_message_patterns: list[str] = []
+    blocked_message_patterns: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_BLOCKED_PATTERNS)
+    )
+    unavailable_message_patterns: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_UNAVAILABLE_PATTERNS)
+    )
+    no_captions_message_patterns: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_NO_CAPTIONS_PATTERNS)
+    )
 
     @field_validator("languages")
     @classmethod
@@ -347,6 +382,9 @@ def describe_config(cfg: Config) -> dict[str, object]:
 
 
 __all__ = [
+    "DEFAULT_BLOCKED_PATTERNS",
+    "DEFAULT_NO_CAPTIONS_PATTERNS",
+    "DEFAULT_UNAVAILABLE_PATTERNS",
     "AppConfig",
     "ChannelConfig",
     "Config",

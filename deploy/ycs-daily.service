@@ -1,0 +1,37 @@
+[Unit]
+Description=yt-crypto-signals daily maintenance (score, crosscheck recompute, backup, health)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ycs
+Group=ycs
+WorkingDirectory=/opt/ycs
+Environment=PATH=/opt/ycs/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/ycs/.venv/bin/ycs score
+ExecStart=/opt/ycs/.venv/bin/ycs db backup
+ExecStart=/opt/ycs/.venv/bin/ycs health
+TimeoutStartSec=30min
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+CapabilityBoundingSet=
+ReadWritePaths=/opt/ycs/data
+RestrictAddressFamilies=AF_INET AF_INET6
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ycs-daily

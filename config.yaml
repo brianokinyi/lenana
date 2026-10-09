@@ -29,23 +29,17 @@ transcripts:
   webshare_ip_locations: []          # e.g. ["us", "de"] to cut latency
   ytdlp_subtitle_format: "json3"
   ytdlp_po_token_provider_url: "http://127.0.0.1:4416"
-  # YouTube supplies this text at runtime; yt-dlp does not hardcode it, so
-  # classification is substring matching. Add patterns here, not in code.
-  blocked_message_patterns:
-    - "sign in to confirm"
-    - "not a bot"
-    - "confirm you're not a bot"
-    - "http error 429"
-    - "too many requests"
-    - "blocked it in your country"
-  unavailable_message_patterns:
-    - "video unavailable"
-    - "private video"
-    - "video has been removed"
-    - "members-only"
-  no_captions_message_patterns:
-    - "no subtitles"
-    - "there are no subtitles"
+  # Failure classification is text-based because YouTube supplies the
+  # bot-detection wording at runtime and yt-dlp does not hardcode it.
+  # Sensible defaults ship in config.py; uncomment to override or extend them
+  # when YouTube changes its phrasing. Setting a key here REPLACES the default.
+  # blocked_message_patterns:
+  #   - "sign in to confirm"
+  #   - "not a bot"
+  # unavailable_message_patterns:
+  #   - "video unavailable"
+  # no_captions_message_patterns:
+  #   - "no subtitles"
 
 extraction:
   prompt_version: "v1"

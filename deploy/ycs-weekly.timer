@@ -1,0 +1,10 @@
+[Unit]
+Description=yt-crypto-signals weekly scorecard (Sundays)
+
+[Timer]
+OnCalendar=Sun *-*-* 09:00:00 UTC
+Persistent=true
+Unit=ycs-weekly.service
+
+[Install]
+WantedBy=timers.target
