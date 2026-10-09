@@ -136,7 +136,7 @@ class ClaudeExtractor:
 
     @retry(
         stop=stop_after_attempt(4),
-        wait=wait_exponential_jitter(initial=2.0, max=45.0),
+        wait=wait_exponential_jitter(multiplier=2.0, max=45.0),
         retry=retry_if_exception_type(
             (
                 anthropic.RateLimitError,

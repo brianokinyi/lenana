@@ -12,7 +12,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from ..enums import Confidence, Direction, Divergence
-from ..utils import fmt_duration, fmt_price, fmt_timestamp, to_display, truncate
+from ..utils import fmt_duration, fmt_price, fmt_timestamp, human_datetime, to_display, truncate
 
 #: Telegram's hard limit for a single message.
 TELEGRAM_MAX_CHARS = 4096
@@ -84,11 +84,12 @@ def _call_block(call: AlertCall, video_url: str) -> str:
     deep_link = f"{video_url}&t={int(call.timestamp_seconds)}s"
 
     return (
-        f"{emoji} <b>{escape_html(call.token_symbol)}</b> — {label}{marker}\n"
-        f"   Target: {escape_html(target)} · Timeframe: {timeframe} · "
+        f"<b>{escape_html(call.token_symbol)}</b> predicted {label} {emoji}{marker}\n"
+        f"Target: {escape_html(target)}\n"
+        f"Timeframe: {timeframe}\n"
         f"Confidence: {call.confidence}\n"
-        f"   Speaker: {escape_html(call.speaker)}\n"
-        f'   "<i>{quote}</i>" <a href="{deep_link}">[{stamp}]</a>'
+        f"Speaker: {escape_html(call.speaker)}\n"
+        f'"<i>{quote}</i>" <a href="{deep_link}">[{stamp}]</a>'
     )
 
 
@@ -119,13 +120,13 @@ def render_video_alert(alert: VideoAlert, tz: ZoneInfo) -> str:
     """Render the alert for one video."""
     published = to_display(alert.published_at, tz)
     header = (
-        f"📡 <b>NEW CALLS — {escape_html(alert.channel_name)}</b>\n"
-        f'🎙 "{escape_html(truncate(alert.title, 120))}" · '
-        f"{published:%Y-%m-%d %H:%M} · {fmt_duration(alert.duration_seconds)}"
+        f"<b>New calls by {escape_html(alert.channel_name)}</b>\n"
+        f'"{escape_html(truncate(alert.title, 120))}" · '
+        f"{human_datetime(published)} · {fmt_duration(alert.duration_seconds)}"
     )
 
     parts = [header, ""]
-    parts.extend(_call_block(call, alert.video_url) for call in alert.calls)
+    parts.append("\n\n\n".join(_call_block(call, alert.video_url) for call in alert.calls))
 
     crosscheck = _crosscheck_block(alert)
     if crosscheck:

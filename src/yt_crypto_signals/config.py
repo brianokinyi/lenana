@@ -91,7 +91,7 @@ class Settings(BaseSettings):
 
     coingecko_api_key: str = ""
 
-    display_tz: str = "UTC"
+    display_tz: str = "Australia/Adelaide"
     healthcheck_url: str = ""
 
     whisper_fallback: bool = False

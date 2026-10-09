@@ -18,6 +18,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
 
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col, select
@@ -145,7 +146,11 @@ def send_pending(
         if index > 0 and sleep:
             time.sleep(delay)
 
-        result = client.send_message(row.body, chat_id=row.chat_id)
+        result = (
+            client.send_document(Path(row.document_path), row.body, chat_id=row.chat_id)
+            if row.document_path
+            else client.send_message(row.body, chat_id=row.chat_id)
+        )
 
         if result.ok:
             row.state = OutboxState.SENT

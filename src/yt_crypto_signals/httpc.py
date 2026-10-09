@@ -68,7 +68,7 @@ def retry_http(
 
     return retry(
         stop=stop_after_attempt(n),
-        wait=wait_exponential_jitter(initial=initial, max=maximum),
+        wait=wait_exponential_jitter(multiplier=initial, max=maximum),
         retry=retry_if_exception(is_retryable),
         before_sleep=log_retry,
         reraise=True,

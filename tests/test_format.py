@@ -92,7 +92,8 @@ def test_channel_name_is_escaped() -> None:
 
 def test_alert_contains_the_required_elements() -> None:
     body = render_video_alert(make_alert(), TZ)
-    assert "📡" in body and "Crypto Banter" in body
+    assert body.startswith("<b>New calls by Crypto Banter</b>\n")
+    assert "📡" not in body and "🎙" not in body
     assert "🟢" in body and "SOL" in body and "UP" in body
     assert "$300.00" in body
     assert "end of year" in body
@@ -126,7 +127,7 @@ def test_missing_target_says_none_given() -> None:
 def test_published_date_is_in_the_display_timezone() -> None:
     # 09:00 UTC is 12:00 in Nairobi (UTC+3).
     body = render_video_alert(make_alert(), TZ)
-    assert "2026-10-09 12:00" in body
+    assert "9 Oct 2026 12PM" in body
 
 
 def test_track_record_hidden_below_minimum_sample() -> None:

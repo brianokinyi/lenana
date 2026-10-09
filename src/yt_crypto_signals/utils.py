@@ -17,6 +17,20 @@ _VIDEO_ID_RE = re.compile(r"(?:v=|youtu\.be/|/shorts/|/embed/|/live/|/v/)(?P<id>
 _BARE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 
 
+def human_datetime(value: datetime | str) -> str:
+    """Display a localized date with a 12-hour clock, retaining nonzero minutes."""
+    dt = datetime.fromisoformat(value) if isinstance(value, str) else value
+    clock = str(dt.hour % 12 or 12)
+    if dt.minute:
+        clock += f":{dt.minute:02d}"
+    return f"{dt.day} {dt:%b %Y} {clock}{dt:%p}"
+
+
+def human_date(value: str) -> str:
+    dt = datetime.fromisoformat(value)
+    return f"{dt.day} {dt:%b %Y}"
+
+
 def parse_iso8601_duration(value: str) -> int | None:
     """Seconds from an ISO-8601 duration, or None if unparseable.
 

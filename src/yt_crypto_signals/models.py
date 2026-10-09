@@ -223,6 +223,34 @@ class Call(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow)
 
 
+class MentionScan(SQLModel, table=True):
+    """Completed scan, including videos with zero mentions; fingerprint permits rescans."""
+
+    __tablename__ = "mention_scan"
+    video_pk: int = Field(primary_key=True, foreign_key="video.id")
+    fingerprint: str
+    model: str
+    prompt_version: str = "mentions_v1"
+    cost_usd: float | None = None
+    rejected: int = 0
+    scanned_at: datetime = Field(default_factory=utcnow)
+
+
+class CoinMention(SQLModel, table=True):
+    """One evidence-checked coin discussion per video, independent of predictions."""
+
+    __tablename__ = "coin_mention"
+    __table_args__ = (UniqueConstraint("video_pk", "token_symbol", name="uq_mention_video_coin"),)
+    id: int | None = Field(default=None, primary_key=True)
+    video_pk: int = Field(foreign_key="video.id", index=True)
+    token_symbol: str = Field(index=True)
+    token_name: str | None = None
+    quote: str
+    timestamp_seconds: int
+    is_sponsored: bool = False
+    created_at: datetime = Field(default_factory=utcnow)
+
+
 # --------------------------------------------------------------------------
 # Scoring and cross-checking (never mutate Call)
 # --------------------------------------------------------------------------
@@ -268,9 +296,7 @@ class Crosscheck(SQLModel, table=True):
     bull_count: int = 0
     bear_count: int = 0
     channel_count: int = 0
-    divergence: Divergence = Field(
-        default=Divergence.ALIGNED, sa_type=enum_type(Divergence)
-    )
+    divergence: Divergence = Field(default=Divergence.ALIGNED, sa_type=enum_type(Divergence))
     #: [{"channel": str, "direction": str, "video_id": str}, ...]
     channels: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSON))
     window_days: int = 5
@@ -300,6 +326,7 @@ class Outbox(SQLModel, table=True):
     kind: OutboxKind = Field(sa_type=enum_type(OutboxKind))
     chat_id: str
     body: str
+    document_path: str | None = None
     #: Messages over the 4096-char limit are split into several rows.
     part_index: int = 0
     part_total: int = 1
@@ -404,8 +431,10 @@ __all__ = [
     "CallScore",
     "Channel",
     "Coin",
+    "CoinMention",
     "Crosscheck",
     "ExtractionRun",
+    "MentionScan",
     "Outbox",
     "PriceCache",
     "StageRun",

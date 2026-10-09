@@ -10,6 +10,7 @@ Group=ycs
 WorkingDirectory=/opt/ycs
 Environment=PATH=/opt/ycs/.venv/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/ycs/.venv/bin/ycs score
+ExecStart=/opt/ycs/.venv/bin/ycs report --refresh-prices --send
 ExecStart=/opt/ycs/.venv/bin/ycs db backup
 ExecStart=/opt/ycs/.venv/bin/ycs health
 TimeoutStartSec=30min

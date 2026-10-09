@@ -151,3 +151,4 @@ class OutboxKind(StrEnum):
     SCORECARD = "scorecard"
     HEALTH = "health"
     TEST = "test"
+    DAILY_REPORT = "daily_report"

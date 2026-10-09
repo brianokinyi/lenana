@@ -7,6 +7,7 @@ how to send one message and how to describe what happened.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 
@@ -127,6 +128,44 @@ class TelegramClient:
             return Identity(ok=False, error=response.text[:500])
         result = response.json().get("result") or {}
         return Identity(ok=True, bot_id=result.get("id"), username=result.get("username"))
+
+    def send_document(self, path: Path, caption: str, chat_id: str | None = None) -> SendResult:
+        """Upload a report; errors use the same outbox retry policy as messages."""
+        try:
+            with path.open("rb") as document, build_client(self.cfg) as client:
+                response = client.post(
+                    self._url("sendDocument"),
+                    data={"chat_id": chat_id or self.default_chat_id, "caption": caption[:1024]},
+                    files={
+                        "document": (
+                            path.name,
+                            document,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        )
+                    },
+                )
+        except OSError as exc:
+            return SendResult(ok=False, status_code=400, error=f"Report unavailable: {exc}")
+        except httpx.HTTPError as exc:
+            return SendResult(ok=False, error=str(exc))
+        try:
+            body = response.json()
+        except ValueError:
+            return SendResult(
+                ok=False,
+                status_code=response.status_code,
+                error="Telegram returned a non-JSON document response",
+            )
+        if response.status_code == 200 and body.get("ok"):
+            return SendResult(
+                ok=True, status_code=200, message_id=(body.get("result") or {}).get("message_id")
+            )
+        return SendResult(
+            ok=False,
+            status_code=response.status_code,
+            error=str(body.get("description", "Document upload failed"))[:500],
+            retry_after=(body.get("parameters") or {}).get("retry_after"),
+        )
 
     def discover_chats(self) -> list[ChatRef]:
         """Chats that have interacted with the bot, via getUpdates.

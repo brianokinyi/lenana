@@ -18,6 +18,9 @@ dependencies = [
     "rapidfuzz==3.14.6",
     "pyyaml==6.0.3",
     "defusedxml==0.7.1",
+    "streamlit>=1.50,<2",
+    "plotly>=6,<7",
+    "openpyxl>=3.1,<4",
 ]
 
 [project.optional-dependencies]
@@ -65,7 +68,7 @@ warn_return_any = true
 plugins = []
 
 [[tool.mypy.overrides]]
-module = ["yt_dlp.*", "googleapiclient.*", "youtube_transcript_api.*"]
+module = ["yt_dlp.*", "googleapiclient.*", "youtube_transcript_api.*", "openpyxl.*", "pandas.*", "plotly.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

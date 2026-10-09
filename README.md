@@ -238,6 +238,48 @@ non-retryable so it cannot loop — but it is a *configuration* error, so
 
 ## Local development
 
+### Coin leaderboard and target tracker
+
+```bash
+uv sync --locked --extra dev
+.venv/bin/ycs db upgrade
+.venv/bin/ycs mentions-backfill        # scan saved transcripts; calls Claude, downloads no videos
+.venv/bin/ycs dashboard               # open http://127.0.0.1:8501
+```
+
+The local dashboard has a coin leaderboard, a spreadsheet-style target timeline,
+individual predictions, linked source evidence, and observed price charts. Filter
+by video publication date, channel, ticker, and sponsored content. It reloads saved
+data every minute and exports the selected view as an Excel workbook.
+
+Mentions count **distinct videos per coin**, whether or not a prediction exists.
+The leaderboard shows scan coverage; predictions from unscanned transcripts are
+included until a full mention scan is available. Evidence quotes and coin names
+are checked against the original transcript. Only completed scans are marked done,
+so errors can be retried; changed transcripts are rescanned. Sponsored mentions are
+excluded by default. Tickers are normalized, but ambiguous symbol mappings do not
+receive a guessed current price.
+
+Timeline date columns show **when a prediction was stated**, in `DISPLAY_TZ`.
+Every target remains separate with its currency, channel and timeframe. Deadlines
+are estimates from the stated timeframe. "Reached" requires recorded price-window
+evaluation; current prices alone do not prove that a historical target was reached.
+The graph uses cached observations, not a complete intraday price series. Blank
+current prices mean a mapping or quote is unavailable; quote timestamps show age.
+
+```bash
+.venv/bin/ycs run                     # scan new transcripts, score due calls, snapshot prices
+                                     # and queue one tracker summary + workbook per local day
+.venv/bin/ycs report                  # export data/reports/coin-tracker.xlsx
+.venv/bin/ycs report --refresh-prices --send
+.venv/bin/ycs report --send --force   # explicitly send an additional report today
+```
+
+Reports use the existing Telegram outbox for retries and deduplication. The daily
+systemd maintenance unit also sends a report after scoring. On a local Mac, running
+the dashboard does not schedule pipeline work: run `ycs run` to fetch/process new
+videos. Keep `data/reports/` files while document deliveries are pending.
+
 Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash

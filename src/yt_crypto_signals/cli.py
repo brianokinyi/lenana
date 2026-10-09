@@ -19,6 +19,7 @@ from . import __version__
 from .config import describe_config, format_config_error, get_config
 from .locking import AlreadyRunning, exclusive_lock
 from .logging import get_logger, setup_logging
+from .utils import human_datetime
 
 app = typer.Typer(
     name="ycs",
@@ -423,7 +424,8 @@ def test_telegram(
 
     body = (
         "✅ <b>yt-crypto-signals test</b>\n"
-        f"   Sent {utcnow():%Y-%m-%d %H:%M} UTC\n"
+        f"   Sent {human_datetime(utcnow().astimezone(cfg.settings.tz))} "
+        f"{cfg.settings.display_tz}\n"
         f"   Model: <code>{cfg.settings.anthropic_model}</code>\n"
         f"   Channels: {len(cfg.app.enabled_channels)}"
     )
@@ -580,6 +582,88 @@ def outbox_send(
             indent=2,
         )
     )
+
+
+@app.command()
+def dashboard(
+    port: Annotated[int, typer.Option(min=1024, max=65535)] = 8501,
+) -> None:
+    """Open the local coin leaderboard and target tracker."""
+    import subprocess
+
+    path = Path(__file__).with_name("dashboard.py")
+    raise typer.Exit(
+        subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
+                str(path),
+                "--server.address",
+                "127.0.0.1",
+                "--server.port",
+                str(port),
+                "--server.headless",
+                "true",
+                "--browser.gatherUsageStats",
+                "false",
+            ]
+        )
+    )
+
+
+@app.command("mentions-backfill")
+def mentions_backfill() -> None:
+    """Scan all saved transcripts for coins, without downloading videos again."""
+    from .db import session_scope
+    from .pipeline.mentions import mentions
+
+    cfg = get_config()
+    processed = failed = 0
+    with exclusive_lock(cfg.settings.lock_path), session_scope(cfg) as session:
+        while True:
+            result = mentions(session, cfg)
+            processed += result.processed
+            failed += result.failed
+            if not result.processed or result.failed:
+                break
+    typer.echo(json.dumps({"scanned": processed, "failed": failed}))
+    if failed:
+        raise typer.Exit(1)
+
+
+@app.command()
+def report(
+    send: Annotated[
+        bool, typer.Option(help="Send the summary and spreadsheet to Telegram.")
+    ] = False,
+    refresh_prices: Annotated[bool, typer.Option(help="Fetch current USD prices.")] = False,
+    force: Annotated[
+        bool, typer.Option(help="Send another report even if today's was sent.")
+    ] = False,
+    output: Annotated[Path | None, typer.Option(help="Output spreadsheet path.")] = None,
+) -> None:
+    """Export the full coin tracker; optionally refresh prices and send to Telegram."""
+    from .db import session_scope
+    from .notify.outbox import send_pending
+    from .tracker import load_tracker, queue_daily_report, refresh_current_prices, workbook_bytes
+
+    cfg = get_config()
+    destination = output or cfg.settings.data_dir / "reports" / "coin-tracker.xlsx"
+    with exclusive_lock(cfg.settings.lock_path), session_scope(cfg) as session:
+        if refresh_prices:
+            typer.echo(f"Updated {refresh_current_prices(session, cfg)} coin prices.")
+        data = load_tracker(session, cfg)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(workbook_bytes(data, cfg.settings.display_tz))
+        typer.echo(f"Spreadsheet: {destination.resolve()}")
+        if send:
+            queued = queue_daily_report(session, cfg, force=force)
+            summary = send_pending(session, cfg)
+            typer.echo(f"Queued {queued}; sent {summary.sent}; failed {summary.failed}.")
+            if summary.failed:
+                raise typer.Exit(1)
 
 
 def entrypoint() -> None:

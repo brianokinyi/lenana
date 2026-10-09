@@ -25,7 +25,10 @@ from .crosscheck import crosscheck
 from .discover import discover
 from .enrich import enrich
 from .extract import extract
+from .mentions import mentions
+from .report import daily_report, tracker_prices
 from .runner import StageResult, record_stage
+from .score import score
 from .transcribe import transcribe
 from .verify import verify
 
@@ -37,11 +40,15 @@ StageCallable = Callable[[Session, Config], StageResult]
 STAGES: dict[str, StageCallable] = {
     "discover": discover,
     "transcribe": transcribe,
+    "mentions": mentions,
     "extract": extract,
     "verify": verify,
     "enrich": enrich,
     "crosscheck": crosscheck,
     "alert": alert,
+    "score": score,
+    "tracker_prices": tracker_prices,
+    "daily_report": daily_report,
     "finalise": finalise_queued,
 }
 
@@ -120,7 +127,7 @@ def run_backfill(session: Session, cfg: Config, days: int) -> RunReport:
 
     # Backfill can admit far more videos than one batch, so each stage is run
     # until it stops making progress.
-    for name in ("transcribe", "extract", "verify", "enrich", "crosscheck", "alert"):
+    for name in ("transcribe", "mentions", "extract", "verify", "enrich", "crosscheck", "alert"):
         stage_fn = STAGES[name]
         while True:
             try:
