@@ -1,10 +1,10 @@
 [Unit]
-Description=yt-crypto-signals weekly scorecard (Sundays)
+Description=lenana weekly scorecard (Sundays)
 
 [Timer]
 OnCalendar=Sun *-*-* 09:00:00 UTC
 Persistent=true
-Unit=ycs-weekly.service
+Unit=lenana-weekly.service
 
 [Install]
 WantedBy=timers.target

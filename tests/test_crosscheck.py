@@ -6,16 +6,16 @@ from datetime import UTC, datetime, timedelta
 
 from sqlmodel import Session, select
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import (
+from lenana.config import Config
+from lenana.enums import (
     Confidence,
     Direction,
     Divergence,
     VerifyStatus,
     VideoState,
 )
-from yt_crypto_signals.models import Call, Channel, Crosscheck, ExtractionRun, Video
-from yt_crypto_signals.pipeline.crosscheck import crosscheck
+from lenana.models import Call, Channel, Crosscheck, ExtractionRun, Video
+from lenana.pipeline.crosscheck import crosscheck
 
 BASE = datetime(2026, 6, 1, 12, 0, tzinfo=UTC)
 

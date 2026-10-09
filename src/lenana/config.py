@@ -138,11 +138,11 @@ class Settings(BaseSettings):
 
     @property
     def db_path(self) -> Path:
-        return self.data_dir / "ycs.db"
+        return self.data_dir / "lenana.db"
 
     @property
     def lock_path(self) -> Path:
-        return self.data_dir / "ycs.lock"
+        return self.data_dir / "lenana.lock"
 
 
 # --------------------------------------------------------------------------

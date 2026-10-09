@@ -126,7 +126,7 @@ def setup_logging(level: str = "INFO", json_output: bool | None = None) -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(f"ycs.{name}")
+    return logging.getLogger(f"lenana.{name}")
 
 
 __all__ = ["HumanFormatter", "RedactingJsonFormatter", "get_logger", "redact", "setup_logging"]

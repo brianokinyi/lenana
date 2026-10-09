@@ -1,6 +1,6 @@
 """Single-instance enforcement via an fcntl advisory lock.
 
-A manual `ycs run` must not overlap a timer-driven run: they would both try to
+A manual `lenana run` must not overlap a timer-driven run: they would both try to
 claim the same `discovered` rows and double-charge the extraction step. The
 lock is held for the life of the process and released by the OS even if the
 process is killed, which a PID file could not guarantee.
@@ -41,7 +41,7 @@ def exclusive_lock(path: Path, wait: bool = False) -> Iterator[None]:
         except OSError as exc:
             if exc.errno in (errno.EACCES, errno.EAGAIN):
                 raise AlreadyRunning(
-                    f"another yt-crypto-signals process holds {path}; skipping this run"
+                    f"another lenana process holds {path}; skipping this run"
                 ) from exc
             raise
         os.truncate(fd, 0)

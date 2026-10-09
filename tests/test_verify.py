@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import RejectReason
-from yt_crypto_signals.llm.schemas import RawCall, validate_call
-from yt_crypto_signals.sources.transcripts.base import TranscriptSegment
-from yt_crypto_signals.verify.quotes import locate_quote, verify_quote, window_text
+from lenana.config import Config
+from lenana.enums import RejectReason
+from lenana.llm.schemas import RawCall, validate_call
+from lenana.sources.transcripts.base import TranscriptSegment
+from lenana.verify.quotes import locate_quote, verify_quote, window_text
 
 TRANSCRIPT_LINES = [
     (0.0, "welcome back everyone to another episode"),

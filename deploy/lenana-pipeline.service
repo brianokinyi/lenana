@@ -1,16 +1,16 @@
 [Unit]
-Description=yt-crypto-signals pipeline (discover -> transcribe -> extract -> verify -> alert)
-Documentation=https://github.com/your-user/yt-crypto-signals
+Description=lenana pipeline (discover -> transcribe -> extract -> verify -> alert)
+Documentation=https://github.com/your-user/lenana
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=ycs
-Group=ycs
-WorkingDirectory=/opt/ycs
-Environment=PATH=/opt/ycs/.venv/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/opt/ycs/.venv/bin/ycs run
+User=lenana
+Group=lenana
+WorkingDirectory=/opt/lenana
+Environment=PATH=/opt/lenana/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/lenana/.venv/bin/lenana run
 
 # A stage can legitimately take a while on a three-hour stream, but it must
 # never outlive its own timer interval and overlap the next run.
@@ -36,13 +36,13 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service
 CapabilityBoundingSet=
 # ProtectSystem=strict makes everything read-only except what is listed here.
-ReadWritePaths=/opt/ycs/data
+ReadWritePaths=/opt/lenana/data
 # IPv4/IPv6 only; the app needs no unix-domain or packet sockets.
 RestrictAddressFamilies=AF_INET AF_INET6
 
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=ycs
+SyslogIdentifier=lenana
 
 [Install]
 WantedBy=multi-user.target

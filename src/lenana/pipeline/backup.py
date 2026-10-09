@@ -20,7 +20,7 @@ log = get_logger("backup")
 
 def backup(cfg: Config) -> Path:
     directory = cfg.settings.data_dir / "backups"
-    target = directory / f"ycs-{utcnow():%Y%m%d-%H%M%S}.db"
+    target = directory / f"lenana-{utcnow():%Y%m%d-%H%M%S}.db"
     path = backup_to(target, cfg)
     log.info("backup written", extra={"path": str(path), "bytes": path.stat().st_size})
     return path
@@ -33,9 +33,9 @@ def prune_backups(cfg: Config) -> int:
         return 0
     cutoff = utcnow() - timedelta(days=cfg.app.health.backup_retention_days)
     removed = 0
-    for path in directory.glob("ycs-*.db"):
+    for path in directory.glob("lenana-*.db"):
         try:
-            stamp = path.stem.removeprefix("ycs-")
+            stamp = path.stem.removeprefix("lenana-")
             from datetime import datetime
 
             taken = datetime.strptime(stamp, "%Y%m%d-%H%M%S").replace(tzinfo=cutoff.tzinfo)

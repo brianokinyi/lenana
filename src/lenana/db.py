@@ -96,7 +96,7 @@ def create_all(engine: Engine | None = None) -> None:
     """Create tables directly from the models.
 
     Alembic owns the real schema; this exists for tests and for bootstrapping a
-    throwaway database. Production uses `ycs db upgrade`.
+    throwaway database. Production uses `lenana db upgrade`.
     """
     from . import models  # noqa: F401  (import registers the tables)
 

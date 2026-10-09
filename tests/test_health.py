@@ -7,10 +7,10 @@ from datetime import UTC, datetime, timedelta
 
 from sqlmodel import Session, select
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import FailureKind, OutboxKind, OutboxState, VideoState
-from yt_crypto_signals.models import ApiUsage, Channel, Outbox, StageRun, Video, utcnow
-from yt_crypto_signals.pipeline.health import check_health, health
+from lenana.config import Config
+from lenana.enums import FailureKind, OutboxKind, OutboxState, VideoState
+from lenana.models import ApiUsage, Channel, Outbox, StageRun, Video, utcnow
+from lenana.pipeline.health import check_health, health
 
 _VIDEO_COUNTER = itertools.count(1)
 

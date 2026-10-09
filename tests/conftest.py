@@ -14,8 +14,8 @@ import pytest
 from sqlalchemy import Engine
 from sqlmodel import Session
 
-from yt_crypto_signals import db as db_module
-from yt_crypto_signals.config import AppConfig, ChannelConfig, Config, Settings
+from lenana import db as db_module
+from lenana.config import AppConfig, ChannelConfig, Config, Settings
 
 
 @pytest.fixture(autouse=True)

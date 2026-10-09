@@ -22,21 +22,21 @@ from youtube_transcript_api._errors import (
     YouTubeRequestFailed,
 )
 
-from yt_crypto_signals.config import Config, ProxyProvider
-from yt_crypto_signals.enums import FailureKind, TranscriptProvider
-from yt_crypto_signals.sources.transcripts.base import (
+from lenana.config import Config, ProxyProvider
+from lenana.enums import FailureKind, TranscriptProvider
+from lenana.sources.transcripts.base import (
     FetchedTranscriptData,
     TranscriptFailure,
     TranscriptSegment,
     classify_message,
 )
-from yt_crypto_signals.sources.transcripts.registry import fetch_transcript
-from yt_crypto_signals.sources.transcripts.whisper import WhisperSource
-from yt_crypto_signals.sources.transcripts.ytapi import (
+from lenana.sources.transcripts.registry import fetch_transcript
+from lenana.sources.transcripts.whisper import WhisperSource
+from lenana.sources.transcripts.ytapi import (
     build_proxy_config,
     classify_exception,
 )
-from yt_crypto_signals.sources.transcripts.ytdlp import parse_json3, parse_vtt
+from lenana.sources.transcripts.ytdlp import parse_json3, parse_vtt
 
 VIDEO_ID = "n3g_L9QI-9k"
 

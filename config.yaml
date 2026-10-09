@@ -1,4 +1,4 @@
-# yt-crypto-signals — non-secret configuration.
+# lenana — non-secret configuration.
 # Secrets live in .env (see .env.example). Everything here is safe to commit.
 
 # Adding a channel = one line. `default_host` labels calls the extractor

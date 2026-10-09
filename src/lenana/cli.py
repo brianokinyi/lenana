@@ -22,8 +22,8 @@ from .logging import get_logger, setup_logging
 from .utils import human_datetime
 
 app = typer.Typer(
-    name="ycs",
-    help="yt-crypto-signals — track, verify and score crypto calls made on YouTube.",
+    name="lenana",
+    help="lenana — track, verify and score crypto calls made on YouTube.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -48,7 +48,7 @@ def main(
 
 def _version_cb(value: bool) -> None:
     if value:
-        typer.echo(f"yt-crypto-signals {__version__}")
+        typer.echo(f"lenana {__version__}")
         raise typer.Exit
 
 
@@ -57,7 +57,7 @@ def version(
     _v: Annotated[bool, typer.Option("--version", callback=_version_cb, is_eager=True)] = False,
 ) -> None:
     """Print the version."""
-    typer.echo(f"yt-crypto-signals {__version__}")
+    typer.echo(f"lenana {__version__}")
 
 
 # --------------------------------------------------------------------------
@@ -135,7 +135,7 @@ def db_backup(
     from .models import utcnow
 
     cfg = get_config()
-    target = dest or (cfg.settings.data_dir / "backups" / f"ycs-{utcnow():%Y%m%d-%H%M%S}.db")
+    target = dest or (cfg.settings.data_dir / "backups" / f"lenana-{utcnow():%Y%m%d-%H%M%S}.db")
     path = backup_to(target, cfg)
     typer.secho(f"Backed up to {path}", fg=typer.colors.GREEN)
 
@@ -226,7 +226,7 @@ def process(
 
     if not dry_run:
         typer.secho(
-            "--commit is not implemented yet; the storing path runs through `ycs run`.",
+            "--commit is not implemented yet; the storing path runs through `lenana run`.",
             fg=typer.colors.YELLOW,
             err=True,
         )
@@ -416,14 +416,14 @@ def test_telegram(
     if str(identity.bot_id) == str(client.default_chat_id):
         typer.secho(
             "TELEGRAM_CHAT_ID is set to the bot's own id, so Telegram will refuse every "
-            "message.\n  Run `ycs test-telegram --find-chat-id` to get the right value.",
+            "message.\n  Run `lenana test-telegram --find-chat-id` to get the right value.",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(1)
 
     body = (
-        "✅ <b>yt-crypto-signals test</b>\n"
+        "✅ <b>lenana test</b>\n"
         f"   Sent {human_datetime(utcnow().astimezone(cfg.settings.tz))} "
         f"{cfg.settings.display_tz}\n"
         f"   Model: <code>{cfg.settings.anthropic_model}</code>\n"

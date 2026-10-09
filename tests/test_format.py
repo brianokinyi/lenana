@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
-from yt_crypto_signals.enums import Confidence, Direction, Divergence
-from yt_crypto_signals.notify.format import (
+from lenana.enums import Confidence, Direction, Divergence
+from lenana.notify.format import (
     TELEGRAM_MAX_CHARS,
     AlertCall,
     AlertCrosscheck,

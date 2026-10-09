@@ -1,4 +1,4 @@
-"""Local, read-only Streamlit tracker. Start with `ycs dashboard`."""
+"""Local, read-only Streamlit tracker. Start with `lenana dashboard`."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ import plotly.graph_objects as go
 import streamlit as st
 from sqlmodel import select
 
-from yt_crypto_signals.config import get_config
-from yt_crypto_signals.db import session_scope
-from yt_crypto_signals.models import Channel
-from yt_crypto_signals.tracker import TrackerData, load_tracker, public_rows, workbook_bytes
-from yt_crypto_signals.utils import human_datetime
+from lenana.config import get_config
+from lenana.db import session_scope
+from lenana.models import Channel
+from lenana.tracker import TrackerData, load_tracker, public_rows, workbook_bytes
+from lenana.utils import human_datetime
 
 st.set_page_config(page_title="Lenana · Coin tracker", page_icon="◈", layout="wide")
 st.markdown(
@@ -66,7 +66,7 @@ def tracker_view() -> None:
                 )
             )
     except Exception:
-        st.error("The tracker database isn't ready. Run `ycs db upgrade` and reopen this page.")
+        st.error("The tracker database isn't ready. Run `lenana db upgrade` and reopen this page.")
         return
     cols = st.columns(4)
     cols[0].metric("Coins discussed", len(data.leaderboard))
@@ -82,7 +82,7 @@ def tracker_view() -> None:
         st.info(
             "Some transcripts have not been scanned for all mentions yet. "
             "Their verified predictions are included. "
-            "Run `ycs mentions-backfill` for full coverage."
+            "Run `lenana mentions-backfill` for full coverage."
         )
     st.download_button(
         "Download full spreadsheet",

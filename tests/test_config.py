@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from yt_crypto_signals.config import (
+from lenana.config import (
     DEFAULT_BLOCKED_PATTERNS,
     AppConfig,
     Config,
@@ -15,8 +15,8 @@ from yt_crypto_signals.config import (
     format_config_error,
     load_app_config,
 )
-from yt_crypto_signals.enums import FailureKind
-from yt_crypto_signals.sources.transcripts.base import classify_message
+from lenana.enums import FailureKind
+from lenana.sources.transcripts.base import classify_message
 
 
 def test_shipped_config_loads() -> None:

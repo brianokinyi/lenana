@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import Confidence, Direction, Outcome, VerifyStatus
-from yt_crypto_signals.models import Call
-from yt_crypto_signals.pipeline.score import classify, due_at_for, target_was_touched
+from lenana.config import Config
+from lenana.enums import Confidence, Direction, Outcome, VerifyStatus
+from lenana.models import Call
+from lenana.pipeline.score import classify, due_at_for, target_was_touched
 
 ENTRY = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
 

@@ -1,4 +1,4 @@
-# yt-crypto-signals
+# lenana
 
 Monitors YouTube crypto channels, extracts **explicit** token price predictions from
 transcripts using Claude, verifies each one against the transcript, cross-checks it
@@ -41,7 +41,7 @@ commits per batch, so an interrupted run leaves at most one batch to be redone.
 
 **Raw data is append-only.** Scores, cross-checks and re-extractions live in separate
 tables, and every extraction records its prompt version and model, so an improved prompt
-can be re-run against full history and compared (`ycs reprocess`).
+can be re-run against full history and compared (`lenana reprocess`).
 
 ---
 
@@ -53,23 +53,23 @@ systemd units; there is no daemon, no web server, and no Redis.
 ```bash
 # 1. As root, fetch the code
 sudo apt update && sudo apt install -y git curl
-sudo git clone <your-repo-url> /opt/ycs
-cd /opt/ycs
+sudo git clone <your-repo-url> /opt/lenana
+cd /opt/lenana
 
-# 2. Run the installer: creates the `ycs` user, builds the venv from the
+# 2. Run the installer: creates the `lenana` user, builds the venv from the
 #    lockfile, applies migrations, installs and enables the timers
 sudo ./deploy/install.sh
 
 # 3. Fill in your keys
-sudo -u ycs nano /opt/ycs/.env
+sudo -u lenana nano /opt/lenana/.env
 ```
 
 Then validate, in this order — each step proves one dependency before the next relies
 on it:
 
 ```bash
-cd /opt/ycs
-R="sudo -u ycs /opt/ycs/.venv/bin/ycs"
+cd /opt/lenana
+R="sudo -u lenana /opt/lenana/.venv/bin/lenana"
 
 $R config-check                      # .env + config.yaml valid? (prints a redacted summary)
 $R test-proxy                        # THE RISKY ONE: can this IP get transcripts at all?
@@ -81,9 +81,9 @@ $R backfill --days 30                # one summary message, not 30 days of alert
 Watch it:
 
 ```bash
-systemctl list-timers 'ycs-*'
-journalctl -u ycs-pipeline -f           # structured JSON, one object per line
-journalctl -u ycs-pipeline -o cat | jq 'select(.level=="ERROR")'
+systemctl list-timers 'lenana-*'
+journalctl -u lenana-pipeline -f           # structured JSON, one object per line
+journalctl -u lenana-pipeline -o cat | jq 'select(.level=="ERROR")'
 ```
 
 ### Getting each API key
@@ -93,7 +93,7 @@ journalctl -u ycs-pipeline -o cat | jq 'select(.level=="ERROR")'
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API Keys |
 | `YOUTUBE_API_KEY` | [Google Cloud Console](https://console.cloud.google.com) → create a project → APIs & Services → Library → enable **YouTube Data API v3** → Credentials → Create credentials → API key. Restrict it to the YouTube Data API. |
 | `TELEGRAM_BOT_TOKEN` | Message [@BotFather](https://t.me/BotFather) → `/newbot` → follow prompts |
-| `TELEGRAM_CHAT_ID` | **Message your new bot first** (or add it to a group and post), then run `ycs test-telegram --find-chat-id`. Group ids are negative. This is the one value that cannot be derived from the token — someone must message the bot before it exists. |
+| `TELEGRAM_CHAT_ID` | **Message your new bot first** (or add it to a group and post), then run `lenana test-telegram --find-chat-id`. Group ids are negative. This is the one value that cannot be derived from the token — someone must message the bot before it exists. |
 | `COINGECKO_API_KEY` | [coingecko.com/en/api](https://www.coingecko.com/en/api) → **Demo** plan (free). Sent as the `x-cg-demo-api-key` header. |
 | `WEBSHARE_PROXY_*` | [webshare.io](https://www.webshare.io) → purchase a **Residential** package → [Proxy settings](https://dashboard.webshare.io/proxy/settings) → copy *Proxy Username* and *Proxy Password*. **Not** "Proxy Server" and **not** "Static Residential" — those are datacenter ranges and YouTube blocks them. |
 
@@ -103,17 +103,17 @@ the whole host being down, when nothing local runs to notice.
 
 ### Installing the PO-token provider
 
-Only needed if `ycs test-proxy` still reports `blocked` with a residential proxy
+Only needed if `lenana test-proxy` still reports `blocked` with a residential proxy
 configured. It has two halves:
 
 ```bash
 # The server (Node, so it runs in a container bound to localhost)
-cd /opt/ycs && sudo docker compose up -d
+cd /opt/lenana && sudo docker compose up -d
 
 # The yt-dlp plugin that talks to it
-sudo -u ycs /opt/ycs/.venv/bin/pip install bgutil-ytdlp-pot-provider
+sudo -u lenana /opt/lenana/.venv/bin/pip install bgutil-ytdlp-pot-provider
 
-sudo -u ycs /opt/ycs/.venv/bin/ycs test-proxy   # should now print "PO-token provider: detected"
+sudo -u lenana /opt/lenana/.venv/bin/lenana test-proxy   # should now print "PO-token provider: detected"
 ```
 
 The provider is detected by import, not assumed: yt-dlp silently ignores
@@ -136,7 +136,7 @@ channels:
     default_host: "Their Name"     # labels calls the extractor attributes to the host
 ```
 
-Then `sudo systemctl start ycs-pipeline` (or wait for the next tick). `default_host`
+Then `sudo systemctl start lenana-pipeline` (or wait for the next tick). `default_host`
 exists because on a panel show the extractor mostly emits `Host`/`Guest`, which would
 make the speaker leaderboard useless; named guests are still recorded under their own
 names when the transcript identifies them.
@@ -146,22 +146,22 @@ names when the transcript identifies them.
 ## Commands
 
 ```
-ycs run [--stages discover,transcribe]   full pipeline once (what the 30-min timer calls)
-ycs backfill --days 30                   backfill history, one summary message
-ycs process --video <url> --dry-run      extract + verify one video, print JSON, send nothing
-ycs reprocess --prompt-version v2 [--since 2026-09-01] [--limit N]
-ycs score                                score calls whose timeframe has elapsed
-ycs scorecard [--send]                   weekly channel/speaker league table
-ycs health [--no-notify]                 stuck stages, dead proxy, low quota
-ycs stats                                row counts and pipeline state distribution
-ycs config-check                         validate configuration (redacted summary)
-ycs test-proxy [--video <url>]           which transcript providers work from this host
-ycs test-telegram [--find-chat-id]       bot token, chat id, outbox round-trip
-ycs outbox-send [--retry-failed]         flush alerts; requeue after fixing config
-ycs db upgrade | current | backup
+lenana run [--stages discover,transcribe]   full pipeline once (what the 30-min timer calls)
+lenana backfill --days 30                   backfill history, one summary message
+lenana process --video <url> --dry-run      extract + verify one video, print JSON, send nothing
+lenana reprocess --prompt-version v2 [--since 2026-09-01] [--limit N]
+lenana score                                score calls whose timeframe has elapsed
+lenana scorecard [--send]                   weekly channel/speaker league table
+lenana health [--no-notify]                 stuck stages, dead proxy, low quota
+lenana stats                                row counts and pipeline state distribution
+lenana config-check                         validate configuration (redacted summary)
+lenana test-proxy [--video <url>]           which transcript providers work from this host
+lenana test-telegram [--find-chat-id]       bot token, chat id, outbox round-trip
+lenana outbox-send [--retry-failed]         flush alerts; requeue after fixing config
+lenana db upgrade | current | backup
 ```
 
-`ycs process --dry-run` is the inspection path and the most useful command for tuning:
+`lenana process --dry-run` is the inspection path and the most useful command for tuning:
 it prints the verified calls *and* the rejected ones with reasons, including whether a
 rejected quote appears elsewhere in the transcript — which distinguishes "the model
 moved a real quote" from "the model invented one".
@@ -198,7 +198,7 @@ Extraction cost is recorded per run (`extraction_run.cost_usd`) from prices in
 
 ## Troubleshooting blocked transcripts
 
-`ycs test-proxy` is the diagnostic. It probes every provider independently and prints the
+`lenana test-proxy` is the diagnostic. It probes every provider independently and prints the
 classification for each, so one provider succeeding never masks another failing.
 
 | Symptom | Cause | Fix |
@@ -207,7 +207,7 @@ classification for each, so one provider succeeding never masks another failing.
 | `blocked` *with* a residential proxy | Session needs a PO token | Install the provider (above) |
 | `no_captions` | The video genuinely has none in your languages | Expected on some uploads; the video is skipped, not retried |
 | `unavailable` | Private, removed, age-restricted, or still live | Expected; skipped without retry |
-| `transient` on everything | Network, DNS or a dead proxy endpoint | Check egress; `journalctl -u ycs-pipeline` |
+| `transient` on everything | Network, DNS or a dead proxy endpoint | Check egress; `journalctl -u lenana-pipeline` |
 | Captions missing right after a stream | YouTube generates them late | By design: videos wait `livestream_settle_hours` (2 h) after `actualEndTime` |
 
 Only `blocked` and `transient` are retried. `no_captions` and `unavailable` are dead
@@ -217,7 +217,7 @@ If a video exhausts the retry ladder it becomes `permanent_failed` and the healt
 reports it. To retry after fixing the cause:
 
 ```bash
-sqlite3 /opt/ycs/data/ycs.db \
+sqlite3 /opt/lenana/data/lenana.db \
   "update video set state='discovered', attempts=0, next_retry_at=null
    where state='permanent_failed';"
 ```
@@ -225,9 +225,9 @@ sqlite3 /opt/ycs/data/ycs.db \
 ### Alerts not arriving
 
 ```bash
-ycs stats                          # are videos reaching alert_queued?
-ycs outbox-send                    # flush manually and read the error
-ycs outbox-send --retry-failed     # after fixing TELEGRAM_CHAT_ID
+lenana stats                          # are videos reaching alert_queued?
+lenana outbox-send                    # flush manually and read the error
+lenana outbox-send --retry-failed     # after fixing TELEGRAM_CHAT_ID
 ```
 
 A 403 from Telegram (wrong chat id, bot removed from the group) is treated as
@@ -242,9 +242,9 @@ non-retryable so it cannot loop — but it is a *configuration* error, so
 
 ```bash
 uv sync --locked --extra dev
-.venv/bin/ycs db upgrade
-.venv/bin/ycs mentions-backfill        # scan saved transcripts; calls Claude, downloads no videos
-.venv/bin/ycs dashboard               # open http://127.0.0.1:8501
+.venv/bin/lenana db upgrade
+.venv/bin/lenana mentions-backfill        # scan saved transcripts; calls Claude, downloads no videos
+.venv/bin/lenana dashboard               # open http://127.0.0.1:8501
 ```
 
 The local dashboard has a coin leaderboard, a spreadsheet-style target timeline,
@@ -268,16 +268,16 @@ The graph uses cached observations, not a complete intraday price series. Blank
 current prices mean a mapping or quote is unavailable; quote timestamps show age.
 
 ```bash
-.venv/bin/ycs run                     # scan new transcripts, score due calls, snapshot prices
+.venv/bin/lenana run                     # scan new transcripts, score due calls, snapshot prices
                                      # and queue one tracker summary + workbook per local day
-.venv/bin/ycs report                  # export data/reports/coin-tracker.xlsx
-.venv/bin/ycs report --refresh-prices --send
-.venv/bin/ycs report --send --force   # explicitly send an additional report today
+.venv/bin/lenana report                  # export data/reports/coin-tracker.xlsx
+.venv/bin/lenana report --refresh-prices --send
+.venv/bin/lenana report --send --force   # explicitly send an additional report today
 ```
 
 Reports use the existing Telegram outbox for retries and deduplication. The daily
 systemd maintenance unit also sends a report after scoring. On a local Mac, running
-the dashboard does not schedule pipeline work: run `ycs run` to fetch/process new
+the dashboard does not schedule pipeline work: run `lenana run` to fetch/process new
 videos. Keep `data/reports/` files while document deliveries are pending.
 
 Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
@@ -286,7 +286,7 @@ Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
 uv venv --python 3.12
 uv pip install -e ".[dev]"
 cp .env.example .env            # fill in keys; PROXY_PROVIDER=none is fine locally
-.venv/bin/ycs db upgrade
+.venv/bin/lenana db upgrade
 ```
 
 Checks:
@@ -312,7 +312,7 @@ Checks:
 ### Layout
 
 ```
-src/yt_crypto_signals/
+src/lenana/
   config.py  models.py  db.py  enums.py  logging.py  locking.py  httpc.py  utils.py  cli.py
   sources/      youtube_api.py, youtube_rss.py (fallback), transcripts/{ytapi,ytdlp,whisper}
   llm/          chunking, merge, schemas (wire + strict), client, extract, prompts/

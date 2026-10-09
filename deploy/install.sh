@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# VPS installer for yt-crypto-signals. Idempotent: safe to re-run after a pull.
+# VPS installer for lenana. Idempotent: safe to re-run after a pull.
 #
 # Usage (as root):
 #   ./deploy/install.sh
 #
-# Expects the repository to already be at /opt/ycs.
+# Expects the repository to already be at /opt/lenana.
 set -euo pipefail
 
-APP_DIR=/opt/ycs
-APP_USER=ycs
+APP_DIR=/opt/lenana
+APP_USER=lenana
 PYTHON_VERSION=3.12
 
 if [[ $EUID -ne 0 ]]; then
@@ -51,29 +51,29 @@ chown "$APP_USER:$APP_USER" "$APP_DIR/.env"
 chmod 600 "$APP_DIR/.env"
 
 echo "==> Applying database migrations"
-sudo -u "$APP_USER" "$APP_DIR/.venv/bin/ycs" db upgrade
+sudo -u "$APP_USER" "$APP_DIR/.venv/bin/lenana" db upgrade
 
 echo "==> Installing systemd units"
-install -m 644 "$APP_DIR"/deploy/ycs-*.service "$APP_DIR"/deploy/ycs-*.timer /etc/systemd/system/
+install -m 644 "$APP_DIR"/deploy/lenana-*.service "$APP_DIR"/deploy/lenana-*.timer /etc/systemd/system/
 systemctl daemon-reload
 
 echo "==> Enabling timers"
-systemctl enable --now ycs-pipeline.timer ycs-outbox.timer ycs-daily.timer ycs-weekly.timer
+systemctl enable --now lenana-pipeline.timer lenana-outbox.timer lenana-daily.timer lenana-weekly.timer
 
 cat <<'NEXT'
 
 Installed. Next steps:
 
-  1. Fill in /opt/ycs/.env           (keys: Anthropic, YouTube, Telegram, CoinGecko, Webshare)
-  2. sudo -u ycs /opt/ycs/.venv/bin/ycs config-check
-  3. sudo -u ycs /opt/ycs/.venv/bin/ycs test-proxy       <- do this before anything else
-  4. sudo -u ycs /opt/ycs/.venv/bin/ycs test-telegram --find-chat-id
-  5. sudo -u ycs /opt/ycs/.venv/bin/ycs test-telegram
-  6. sudo -u ycs /opt/ycs/.venv/bin/ycs backfill --days 30
+  1. Fill in /opt/lenana/.env           (keys: Anthropic, YouTube, Telegram, CoinGecko, Webshare)
+  2. sudo -u lenana /opt/lenana/.venv/bin/lenana config-check
+  3. sudo -u lenana /opt/lenana/.venv/bin/lenana test-proxy       <- do this before anything else
+  4. sudo -u lenana /opt/lenana/.venv/bin/lenana test-telegram --find-chat-id
+  5. sudo -u lenana /opt/lenana/.venv/bin/lenana test-telegram
+  6. sudo -u lenana /opt/lenana/.venv/bin/lenana backfill --days 30
 
 Watch it run:
 
-  systemctl list-timers 'ycs-*'
-  journalctl -u ycs-pipeline -f
+  systemctl list-timers 'lenana-*'
+  journalctl -u lenana-pipeline -f
 
 NEXT

@@ -7,10 +7,10 @@ from datetime import UTC, datetime, timedelta
 
 from sqlmodel import Session
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import FailureKind, SkipReason, VideoState
-from yt_crypto_signals.models import Channel, Video, utcnow
-from yt_crypto_signals.pipeline.runner import (
+from lenana.config import Config
+from lenana.enums import FailureKind, SkipReason, VideoState
+from lenana.models import Channel, Video, utcnow
+from lenana.pipeline.runner import (
     advance,
     claim_videos,
     defer,

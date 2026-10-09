@@ -5,12 +5,12 @@
 # PO-token provider is a Node service, and running it in a container avoids
 # installing a Node toolchain on the VPS.
 #
-# Needed only if `ycs test-proxy` reports transcripts as `blocked` even with a
+# Needed only if `lenana test-proxy` reports transcripts as `blocked` even with a
 # residential proxy configured. Start with:
 #
 #     docker compose up -d
 #     pip install bgutil-ytdlp-pot-provider    # the yt-dlp plugin half
-#     ycs test-proxy                           # should now report "detected"
+#     lenana test-proxy                           # should now report "detected"
 
 services:
   bgutil-provider:

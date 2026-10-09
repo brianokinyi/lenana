@@ -169,7 +169,7 @@ def health(session: Session, cfg: Config, notify: bool = True) -> StageResult:
             session,
             dedupe_key=f"health:{utcnow():%Y-%m-%d}:{digest}",
             kind=OutboxKind.HEALTH,
-            body=render_health_alert("yt-crypto-signals health warning", report.problems),
+            body=render_health_alert("lenana health warning", report.problems),
             cfg=cfg,
         )
     return result

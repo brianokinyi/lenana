@@ -1,18 +1,16 @@
 [Unit]
-Description=yt-crypto-signals outbox flush
+Description=lenana weekly scorecard
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=ycs
-Group=ycs
-WorkingDirectory=/opt/ycs
-Environment=PATH=/opt/ycs/.venv/bin:/usr/local/bin:/usr/bin:/bin
-# Runs independently of the pipeline so a Telegram outage cannot strand an
-# alert until the next pipeline tick.
-ExecStart=/opt/ycs/.venv/bin/ycs outbox-send
-TimeoutStartSec=5min
+User=lenana
+Group=lenana
+WorkingDirectory=/opt/lenana
+Environment=PATH=/opt/lenana/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/lenana/.venv/bin/lenana scorecard --send
+TimeoutStartSec=10min
 
 NoNewPrivileges=true
 ProtectSystem=strict
@@ -29,9 +27,9 @@ LockPersonality=true
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 CapabilityBoundingSet=
-ReadWritePaths=/opt/ycs/data
+ReadWritePaths=/opt/lenana/data
 RestrictAddressFamilies=AF_INET AF_INET6
 
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=ycs-outbox
+SyslogIdentifier=lenana-weekly

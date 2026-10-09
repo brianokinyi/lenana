@@ -8,17 +8,17 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import OutboxKind, OutboxState
-from yt_crypto_signals.models import Outbox, utcnow
-from yt_crypto_signals.notify.outbox import (
+from lenana.config import Config
+from lenana.enums import OutboxKind, OutboxState
+from lenana.models import Outbox, utcnow
+from lenana.notify.outbox import (
     enqueue,
     enqueue_committed,
     pending_count,
     retry_failed,
     send_pending,
 )
-from yt_crypto_signals.notify.telegram import SendResult
+from lenana.notify.telegram import SendResult
 
 
 class FakeTelegram:

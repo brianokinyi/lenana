@@ -11,9 +11,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlmodel import SQLModel
 
-from yt_crypto_signals import models  # noqa: F401  (registers tables on the metadata)
-from yt_crypto_signals.config import get_config
-from yt_crypto_signals.db import build_engine
+from lenana import models  # noqa: F401  (registers tables on the metadata)
+from lenana.config import get_config
+from lenana.db import build_engine
 
 config = context.config
 if config.config_file_name is not None:

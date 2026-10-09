@@ -12,12 +12,12 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
-from yt_crypto_signals.config import AppConfig, ChannelConfig, ProxyProvider, Settings
-from yt_crypto_signals.enums import FailureKind, OutboxKind, VideoState
-from yt_crypto_signals.locking import AlreadyRunning, exclusive_lock
-from yt_crypto_signals.logging import redact
-from yt_crypto_signals.models import Channel, Outbox, Video
-from yt_crypto_signals.utils import (
+from lenana.config import AppConfig, ChannelConfig, ProxyProvider, Settings
+from lenana.enums import FailureKind, OutboxKind, VideoState
+from lenana.locking import AlreadyRunning, exclusive_lock
+from lenana.logging import redact
+from lenana.models import Channel, Outbox, Video
+from lenana.utils import (
     backoff_delay,
     extract_video_id,
     fmt_duration,
@@ -230,7 +230,7 @@ def test_empty_retry_ladder_rejected() -> None:
 
 def test_shipped_config_yaml_is_valid() -> None:
     """The committed config.yaml must always load."""
-    from yt_crypto_signals.config import load_app_config
+    from lenana.config import load_app_config
 
     cfg = load_app_config()
     assert len(cfg.enabled_channels) == 4
@@ -252,7 +252,7 @@ def _child_tries_lock(path: str, result: object) -> None:  # pragma: no cover - 
 
 def test_second_process_cannot_take_the_lock(tmp_path: Path) -> None:
     """A manual CLI run must not overlap a timer run."""
-    lock_path = tmp_path / "ycs.lock"
+    lock_path = tmp_path / "lenana.lock"
     ctx = multiprocessing.get_context("spawn")
     flag = ctx.Value("i", 0)
     with exclusive_lock(lock_path):
@@ -263,7 +263,7 @@ def test_second_process_cannot_take_the_lock(tmp_path: Path) -> None:
 
 
 def test_lock_is_reusable_after_release(tmp_path: Path) -> None:
-    lock_path = tmp_path / "ycs.lock"
+    lock_path = tmp_path / "lenana.lock"
     with exclusive_lock(lock_path):
         pass
     with exclusive_lock(lock_path):

@@ -9,15 +9,15 @@ import respx
 from openpyxl import load_workbook
 from sqlmodel import Session, select
 
-from yt_crypto_signals.config import Config
-from yt_crypto_signals.enums import (
+from lenana.config import Config
+from lenana.enums import (
     Direction,
     OutboxKind,
     OutboxState,
     TranscriptProvider,
     VerifyStatus,
 )
-from yt_crypto_signals.models import (
+from lenana.models import (
     Call,
     CallScore,
     Channel,
@@ -28,15 +28,15 @@ from yt_crypto_signals.models import (
     Video,
     utcnow,
 )
-from yt_crypto_signals.notify.outbox import send_pending
-from yt_crypto_signals.notify.telegram import TelegramClient
-from yt_crypto_signals.pipeline.mentions import (
+from lenana.notify.outbox import send_pending
+from lenana.notify.telegram import TelegramClient
+from lenana.pipeline.mentions import (
     MentionExtraction,
     RawMention,
     checked_mentions,
     mentions,
 )
-from yt_crypto_signals.tracker import load_tracker, queue_daily_report, workbook_bytes
+from lenana.tracker import load_tracker, queue_daily_report, workbook_bytes
 
 
 def saved_video(session: Session, suffix: str = "1", days: int = 1) -> Video:
@@ -176,8 +176,8 @@ def test_empty_scans_are_idempotent_and_changed_transcript_rescans(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_crypto_signals.llm.client import Usage
-    from yt_crypto_signals.pipeline import mentions as module
+    from lenana.llm.client import Usage
+    from lenana.pipeline import mentions as module
 
     video = saved_video(session)
     assert video.id is not None

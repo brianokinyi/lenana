@@ -1,11 +1,11 @@
 [Unit]
-Description=Flush the yt-crypto-signals alert outbox every 5 minutes
+Description=Flush the lenana alert outbox every 5 minutes
 
 [Timer]
 OnBootSec=3min
 OnUnitActiveSec=5min
 Persistent=true
-Unit=ycs-outbox.service
+Unit=lenana-outbox.service
 
 [Install]
 WantedBy=timers.target

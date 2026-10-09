@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from yt_crypto_signals.llm.chunking import chunk_transcript
-from yt_crypto_signals.llm.merge import merge_calls
-from yt_crypto_signals.llm.schemas import RawCall
-from yt_crypto_signals.sources.transcripts.base import TranscriptSegment
+from lenana.llm.chunking import chunk_transcript
+from lenana.llm.merge import merge_calls
+from lenana.llm.schemas import RawCall
+from lenana.sources.transcripts.base import TranscriptSegment
 
 
 def segments(count: int, step: float = 5.0) -> list[TranscriptSegment]:

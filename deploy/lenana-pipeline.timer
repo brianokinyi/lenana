@@ -1,5 +1,5 @@
 [Unit]
-Description=Run the yt-crypto-signals pipeline every 30 minutes
+Description=Run the lenana pipeline every 30 minutes
 
 [Timer]
 OnBootSec=5min
@@ -9,7 +9,7 @@ Persistent=true
 # Spread load off the exact half-hour so four channels are not polled by
 # everyone else's cron at the same instant.
 RandomizedDelaySec=120
-Unit=ycs-pipeline.service
+Unit=lenana-pipeline.service
 
 [Install]
 WantedBy=timers.target

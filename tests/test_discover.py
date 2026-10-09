@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 
 from sqlmodel import Session, select
 
-from yt_crypto_signals.config import ChannelConfig, Config
-from yt_crypto_signals.enums import SkipReason, VideoState
-from yt_crypto_signals.models import ApiUsage, Channel, Video, utcnow
-from yt_crypto_signals.pipeline.discover import _admit, ensure_channel, record_quota
-from yt_crypto_signals.sources.youtube_api import ChannelInfo, VideoInfo
+from lenana.config import ChannelConfig, Config
+from lenana.enums import SkipReason, VideoState
+from lenana.models import ApiUsage, Channel, Video, utcnow
+from lenana.pipeline.discover import _admit, ensure_channel, record_quota
+from lenana.sources.youtube_api import ChannelInfo, VideoInfo
 
 
 class FakeApi:

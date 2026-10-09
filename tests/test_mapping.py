@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from sqlmodel import Session
 
-from yt_crypto_signals.models import Coin
-from yt_crypto_signals.pipeline.enrich import target_is_plausible
-from yt_crypto_signals.prices.coingecko import resolve_symbol
+from lenana.models import Coin
+from lenana.pipeline.enrich import target_is_plausible
+from lenana.prices.coingecko import resolve_symbol
 
 
 def add_coin(session: Session, coin_id: str, symbol: str, market_cap: float | None) -> None:
